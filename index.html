@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Alliance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Welcome to The Alliance</h1>
+    <form id="userForm">
+        <label>Name:</label>
+        <input type="text" name="name" required><br>
+        <label>What You Offer:</label>
+        <input type="text" name="offer" required><br>
+        <label>What You Need:</label>
+        <input type="text" name="need" required><br>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="leaderboard">
+        <h2>Leaderboard</h2>
+        <ul id="leaderboardList"></ul>
+    </div>
+
+    <script>
+        // JavaScript to handle form submission and fetch leaderboard data
+        document.getElementById('userForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            fetch('/submit', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchLeaderboard();
+                });
+        });
+
+        function fetchLeaderboard() {
+            fetch('/leaderboard')
+                .then(response => response.json())
+                .then(users => {
+                    const leaderboardList = document.getElementById('leaderboardList');
+                    leaderboardList.innerHTML = '';
+                    users.forEach(user => {
+                        const li = document.createElement('li');
+                        li.textContent = `${user[1]} offers ${user[2]}, needs ${user[3]}`;
+                        leaderboardList.appendChild(li);
+                    });
+                });
+        }
+
+        window.onload = fetchLeaderboard;
+    </script>
+</body>
+</html>
