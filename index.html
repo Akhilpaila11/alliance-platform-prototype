@@ -4,53 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Alliance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <h1>Welcome to The Alliance</h1>
-    <form id="userForm">
+
+    <!-- Topic Suggestions Form -->
+    <form id="suggestionsForm" method="POST" action="/suggestions">
+        <label>Topics of Interest (comma-separated):</label>
+        <input type="text" name="topics" required>
+        <button type="submit">Get Suggestions</button>
+    </form>
+
+    <!-- User Form -->
+    <form id="userForm" method="POST" action="/submit">
         <label>Name:</label>
-        <input type="text" name="name" required><br>
+        <input type="text" name="name" required>
         <label>What You Offer:</label>
-        <input type="text" name="offer" required><br>
+        <input type="text" name="offer" required>
         <label>What You Need:</label>
-        <input type="text" name="need" required><br>
+        <input type="text" name="need" required>
+        <label>Topics You’d Like to Discuss:</label>
+        <input type="text" name="topics" placeholder="e.g., technology, art, community">
         <button type="submit">Submit</button>
     </form>
-    <div id="leaderboard">
-        <h2>Leaderboard</h2>
-        <ul id="leaderboardList"></ul>
+
+    <!-- Connections List -->
+    <div id="connections">
+        <h2>People to Connect With</h2>
+        <ul id="connectionsList"></ul>
+    </div>
+
+    <!-- AI Suggestions -->
+    <div id="aiSuggestions">
+        <h2>Conversation Starters</h2>
+        <ul id="suggestionsList"></ul>
     </div>
 
     <script>
-        // JavaScript to handle form submission and fetch leaderboard data
+        window.onload = fetchConnections;
+
         document.getElementById('userForm').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const formData = new FormData(this);
             fetch('/submit', { method: 'POST', body: formData })
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
-                    fetchLeaderboard();
-                });
+                    fetchConnections();
+                })
+                .catch(error => console.error('Error:', error));
         });
 
-        function fetchLeaderboard() {
-            fetch('/leaderboard')
+        function fetchConnections() {
+            fetch('/connections')
                 .then(response => response.json())
                 .then(users => {
-                    const leaderboardList = document.getElementById('leaderboardList');
-                    leaderboardList.innerHTML = '';
+                    const connectionsList = document.getElementById('connectionsList');
+                    connectionsList.innerHTML = '';
                     users.forEach(user => {
                         const li = document.createElement('li');
-                        li.textContent = `${user[1]} offers ${user[2]}, needs ${user[3]}`;
-                        leaderboardList.appendChild(li);
+                        li.textContent = `${user[0]} offers ${user[1]} - Topics: ${user[2]}`;
+                        connectionsList.appendChild(li);
                     });
-                });
+                })
+                .catch(error => console.error('Error fetching connections:', error));
         }
 
-        window.onload = fetchLeaderboard;
+        document.getElementById('suggestionsForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('/suggestions', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    const suggestionsList = document.getElementById('suggestionsList');
+                    suggestionsList.innerHTML = '';
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        data.forEach(suggestion => {
+                            const li = document.createElement('li');
+                            li.textContent = suggestion;
+                            suggestionsList.appendChild(li);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching suggestions:', error));
+        });
     </script>
 </body>
 </html>
